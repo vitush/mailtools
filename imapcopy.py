@@ -16,6 +16,7 @@ import hashlib
 import socket
 import email.parser
 from datetime import date, timedelta
+import ConfigParser
 
 CHUNK_SIZE = 100
 # IMAP responses should normally begin 'OK' - we strip that off
@@ -46,6 +47,7 @@ def get_arguments():
 
     from optparse import OptionParser
     parser = OptionParser(usage="%prog options ")
+    parser.add_option("-f","--config",    dest='config_file',      help='Config File ')
     parser.add_option("-s","--src-server",dest='src_server',help='Source IMAP server')
     parser.add_option("-S","--dst-server",dest='dst_server',help='Destination IMAP server')
     parser.add_option("-p","--src-port",  dest='src_port',  help='Source IMAP server port', type='int')
@@ -68,7 +70,14 @@ def get_arguments():
 
     parser.set_defaults(verbose=False, ssl=False, dry_run=False, just_list=False,src_port=143,dst_port=143)
     (options, args) = parser.parse_args()
-    
+  
+    config = ConfigParser.ConfigParser()    
+    #Load Data from config file
+    if options.config_file:
+        config.read(options.config_file)
+        for a in config.items("IMAPCopy"):
+            setattr(options, a[0],a[1])
+              
     if (not options.start_date) or (not options.end_date):
             sys.stderr.write("\nError: Must specify Start and End dates. \n")
             parser.print_help()
